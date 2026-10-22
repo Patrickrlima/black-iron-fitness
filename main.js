@@ -56,6 +56,30 @@
     });
   }
 
+  /* ---------- vídeo do topo da home (só telas maiores, sem "economia de dados") ---------- */
+  var heroVideo = document.querySelector(".hero__video");
+  var motionOk = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var saveData = navigator.connection && navigator.connection.saveData;
+  if (heroVideo && motionOk && !saveData && window.matchMedia("(min-width: 761px)").matches) {
+    // telas grandes/retina recebem a versão 4K; as demais, a Full HD (mais leve)
+    var px = Math.max(window.screen.width, window.innerWidth) * (window.devicePixelRatio || 1);
+    var q = px >= 2400 ? "4k" : "hd";
+    [["webm", "video/webm"], ["mp4", "video/mp4"]].forEach(function (s) {
+      var src = document.createElement("source");
+      src.src = heroVideo.getAttribute("data-" + s[0] + "-" + q);
+      src.type = s[1];
+      heroVideo.appendChild(src);
+    });
+    heroVideo.addEventListener("playing", function () { heroVideo.classList.add("is-playing"); }, { once: true });
+    heroVideo.load();
+    var p = heroVideo.play();
+    if (p && p.catch) p.catch(function () { /* autoplay bloqueado: fica a imagem */ });
+    // pausa quando a aba não está visível (economiza bateria)
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) heroVideo.pause(); else heroVideo.play().catch(function () {});
+    });
+  }
+
   /* ---------- revelar imagens ao rolar ---------- */
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var revealEls = document.querySelectorAll(".reveal");
